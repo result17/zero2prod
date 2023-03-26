@@ -1,6 +1,6 @@
 use axum::{extract::Path, http::StatusCode, response::IntoResponse, routing::get, Router};
 
-pub async fn run() {
+pub async fn run() -> Result<(), hyper::Error> {
     let app = Router::new()
         .route("/", get(greet))
         .route("/:name", get(greet))
@@ -10,7 +10,6 @@ pub async fn run() {
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
-        .unwrap();
 }
 
 fn capitalize_first_letter(s: &str) -> String {

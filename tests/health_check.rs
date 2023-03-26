@@ -1,6 +1,6 @@
 #[tokio::test]
 async fn health_check_works() {
-    spawn_app().await.expect("Failed to spawn out app.");
+    spawn_app();
     let client = reqwest::Client::new();
 
     let response = client
@@ -13,6 +13,6 @@ async fn health_check_works() {
     assert_eq!(Some(0), response.content_length());
 }
 
-async fn spawn_app() -> std::io::Result<()> {
-    Ok(zero2prod::run().await)
+fn spawn_app() {
+  tokio::spawn(zero2prod::run());
 }
