@@ -1,13 +1,13 @@
 use axum::{extract::Path, http::StatusCode, response::IntoResponse, routing::get, Router};
+use std::net::TcpListener;
 
-pub async fn run() -> Result<(), hyper::Error> {
+pub async fn run(listener: TcpListener) -> Result<(), hyper::Error> {
     let app = Router::new()
         .route("/", get(greet))
         .route("/:name", get(greet))
         .route("/health_check", get(health_check));
 
-    let addr = std::net::SocketAddr::from(([0, 0, 0, 0], 8330));
-    axum::Server::bind(&addr)
+    axum::Server::from_tcp(listener)?
         .serve(app.into_make_service())
         .await
 }
