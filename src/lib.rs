@@ -1,11 +1,22 @@
-use axum::{extract::Path, http::StatusCode, response::IntoResponse, routing::get, Router};
+use axum::{
+    extract::Path,
+    http::StatusCode,
+    response::{IntoResponse},
+    routing::{get, post},
+    Json, Router,
+};
+use serde::Serialize;
 use std::net::TcpListener;
+use tower_http::cors::{CorsLayer, Any};
 
 pub async fn run(listener: TcpListener) -> Result<(), hyper::Error> {
     let app = Router::new()
         .route("/", get(greet))
         .route("/:name", get(greet))
-        .route("/health_check", get(health_check));
+        .route("/health_check", get(health_check))
+        .route("/options", post(metric_options).layer(
+            CorsLayer::new().allow_origin(Any).allow_headers(Any)
+        ));
 
     axum::Server::from_tcp(listener)?
         .serve(app.into_make_service())
@@ -32,4 +43,40 @@ async fn greet(name: Option<Path<String>>) -> impl IntoResponse {
 
 async fn health_check() -> impl IntoResponse {
     StatusCode::OK
+}
+
+#[derive(Serialize)]
+struct Opt {
+    value: String,
+    count: u32,
+    alias: String,
+}
+
+#[derive(Serialize)]
+struct OptRecord {
+    options: Vec<Opt>
+}
+
+#[derive(Serialize)]
+struct OptResponse {
+    code: u16,
+    data: OptRecord,
+    msg: String,
+}
+
+async fn metric_options() -> impl IntoResponse {
+    let opt = Opt {
+        value: "cn".to_string(),
+        count: 100,
+        alias: "中国".to_string(),
+    };
+    let opt_record = OptRecord {
+        options: vec![opt]
+    };
+    let response = OptResponse {
+        code: 200,
+        data: opt_record,
+        msg: "mock".to_string(),
+    };
+    Json(response)
 }
