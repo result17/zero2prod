@@ -5,3 +5,5 @@ database:
   username: "postgres"
   password: "password"
   database_name: "newsletter"
+  connect_timeout: 3000
+  max_connections: 5

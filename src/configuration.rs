@@ -13,6 +13,8 @@ pub struct DatabaseSettings {
     pub port: u16,
     pub host: String,
     pub database_name: String,
+    pub max_connections: u32,
+    pub connect_timeout: u64,
 }
 
 impl DatabaseSettings {
