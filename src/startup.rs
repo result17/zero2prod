@@ -4,18 +4,11 @@ use axum::{
     routing::{get, post},
     Router, Server,
 };
-use sqlx::postgres::PgPoolOptions;
+use sqlx::postgres::{PgPool, PgPoolOptions};
 use std::{net::TcpListener, time::Duration};
 
 pub async fn run(listener: TcpListener) -> Result<(), hyper::Error> {
-    let config = get_configuration().expect("Failed to get configuration!");
-    let dbSettings = config.database;
-    let pool = PgPoolOptions::new()
-        .max_connections(dbSettings.max_connections)
-        .acquire_timeout(Duration::from_millis(dbSettings.connect_timeout))
-        .connect(&dbSettings.connection_string())
-        .await
-        .expect("Failed to connect postgres!");
+    let pool = get_db_pool().await;
     let app = Router::new()
         .route("/greet", get(greet))
         .route("/greet/:name", get(greet))
@@ -26,4 +19,15 @@ pub async fn run(listener: TcpListener) -> Result<(), hyper::Error> {
     Server::from_tcp(listener)?
         .serve(app.into_make_service())
         .await
+}
+
+pub async fn get_db_pool() -> PgPool {
+    let config = get_configuration().expect("Failed to get configuration!");
+    let db_settings = config.database;
+    PgPoolOptions::new()
+        .max_connections(db_settings.max_connections)
+        .acquire_timeout(Duration::from_millis(db_settings.connect_timeout))
+        .connect(&db_settings.connection_string())
+        .await
+        .expect("Failed to connect postgres!")
 }

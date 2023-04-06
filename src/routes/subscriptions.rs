@@ -11,10 +11,10 @@ pub struct User {
 }
 
 pub async fn subscriptions(
-    Form(user): Form<User>,
     State(state): State<PgPool>,
+    Form(user): Form<User>,
 ) -> impl IntoResponse {
-    query!(
+    match query!(
         "
         INSERT INTO subscriptions (id, email, name, subscribed_at)
         VALUES ($1, $2, $3, $4)
@@ -25,6 +25,12 @@ pub async fn subscriptions(
         Utc::now(),
     )
     .execute(&state)
-    .await;
-    StatusCode::BAD_REQUEST
+    .await
+    {
+        Ok(_) => StatusCode::OK,
+        Err(e) => {
+            println!("Failed to execute query: {}", e);
+            StatusCode::INTERNAL_SERVER_ERROR
+        }
+    }
 }
