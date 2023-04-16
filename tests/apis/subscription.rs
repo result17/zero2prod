@@ -1,20 +1,12 @@
 use crate::helpers::spawn_app;
-use sqlx::{query, Connection, PgConnection};
-use zero2prod::configuration::get_configuration;
+use sqlx::{query};
 
 #[tokio::test]
 async fn subscribe_returns_a_200_for_vaild_form_data() {
     let app = spawn_app().await;
     let socket_addr = format!("http://{}:{}", app.address, app.port);
     let client = reqwest::Client::new();
-    // database
-    let configuration = get_configuration().expect("Failed to read configuration");
-    let connection_string = configuration.database.connection_string();
-
-    let _connection = PgConnection::connect(&connection_string)
-        .await
-        .expect("Failed to connect to Postgres");
-
+    println!("Socket addr {}", socket_addr);
     let body = "name=le%20guin&email=ursula_le_guin%40gmail.com";
     let response = client
         .post(&format!("{}/subscriptions", &socket_addr))
