@@ -8,6 +8,7 @@ fn capitalize_first_letter(s: &str) -> String {
     }
 }
 
+#[tracing::instrument(name = "Greet", level = "info")]
 pub async fn greet(name: Option<Path<String>>) -> impl IntoResponse {
     if let Some(name) = name {
         return format!(
