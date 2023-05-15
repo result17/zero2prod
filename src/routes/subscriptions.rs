@@ -3,7 +3,7 @@ use chrono::Utc;
 use serde::Deserialize;
 use sqlx::{postgres::PgPool, query};
 use uuid::Uuid;
-use tracing::{info};
+use tracing::{info, info_span};
 
 #[derive(Deserialize)]
 pub struct User {
@@ -15,7 +15,16 @@ pub async fn subscriptions(
     State(state): State<PgPool>,
     Form(user): Form<User>,
 ) -> impl IntoResponse {
-    info!("Saving new subscriber details in the database");
+    let request_id = Uuid::new_v4();
+    let request_span = info_span!(
+        "Adding a new subscriber.",
+        %request_id,
+        subscriber_email = %user.email,
+        subscriber_name = %user.name
+    );
+    let _request_span_guard = request_span.enter();
+    
+
     match query!(
         "
         INSERT INTO subscriptions (id, email, name, subscribed_at)
